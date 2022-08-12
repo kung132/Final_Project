@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> <!-- xml 파일의 유효성 체크를 위한 부분 -->
+  
+<mapper namespace="review">
+	<!-- 리뷰등록 -->
+	<insert id="enroll" parameterType="review">
+		INSERT INTO REVIEW(
+						  REVIEW_NO,
+						  BOARD_NO,
+						  MEMBER_NO,
+						  REVIEW_STAR,
+						  REVIEW_TITLE,
+						  REVIEW_CONTENT)
+		VALUES(
+			   SEQ_RNO.NEXTVAL,
+			   #{boardNo},
+			   #{memberNo},
+			   #{reviewStar},
+			   #{reviewTitle},
+			   #{reviewContent})
+	</insert>
+
+	<!-- 토탈카운트 -->
+	<select id="selectListCount" resultType="int" parameterType="int">
+		SELECT COUNT(*)
+		FROM REVIEW
+		WHERE  BOARD_NO = #{boardNo}
+	</select>
+	
+	<!-- 리뷰 리스트 띄우기  -->
+	
+	<!-- 평균별점 조회 -->
+	<select id="avg" resultType="double" parameterType="int">
+		SELECT AVG(REVIEW_STAR) as AVG_STAR
+		FROM REVIEW
+		WHERE BOARD_NO = #{boardNo}
+	</select>
+	
+	<!-- 리스트 조회 -->
+	<select id="list" resultType="map" parameterType="map">
+		SELECT C.MEMBER_NICK,B.*
+		FROM
+		(SELECT *
+		    FROM 
+		    ( SELECT ROWNUM RNUM, A.*
+		      FROM (SELECT * 
+		              FROM REVIEW
+		              WHERE  BOARD_NO = #{boardNo}
+		              ORDER BY ${howtoSort} )A)
+		      WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+		      AND STATUS = 'Y') B , MEMBER C
+		WHERE C.MEMBER_NO = B.MEMBER_NO
+	</select>
+	
+	
+	<select id="tradeCom"  parameterType="map" resultType="int">
+		SELECT TRADE_NO
+		FROM TRADE_COM
+		WHERE MEMBER_NO = #{memberNo} 
+		AND BOARD_NO =#{boardNo}
+		AND STATUS ='Y'
+	</select>
+	
+	<select id="sellerLoc" parameterType="int" resultType="object">
+		SELECT M.ADDRESS, S.GRADE_NO
+		FROM MEMBER M, SELLER S
+		WHERE M.MEMBER_NO = S.MEMBER_NO
+		AND M.MEMBER_NO = (SELECT MEMBER_NO
+							FROM SELLER
+							WHERE SELLER_NO = (SELECT SELLER_NO 
+								               FROM BOARD 
+								               WHERE BOARD_NO = #{boardNo}))
+		
+	</select>
+	<select id="sellerGrade" parameterType="int" resultType="string">
+		SELECT G.GRADE_NAME
+		FROM MEMBER M, SELLER S, GRADE G
+		WHERE M.MEMBER_NO = S.MEMBER_NO
+		AND S.GRADE_NO = G.GRADE_NO
+		AND M.MEMBER_NO = (SELECT MEMBER_NO
+		                    FROM SELLER
+		                    WHERE SELLER_NO = (SELECT SELLER_NO 
+		                                        FROM BOARD 
+		                                        WHERE BOARD_NO = #{boardNo}))
+		
+	</select>
+	
+</mapper>

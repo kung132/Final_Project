@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> <!-- xml 파일의 유효성 체크를 위한 부분 -->
+<mapper namespace="chat">
+	
+	<!-- 채팅 등록용 쿼리문 -->
+	<insert id="insertChat" parameterType="chat">
+		INSERT INTO CHAT(
+							CHAT_ID, 
+							FROM_NICK,
+							TO_NICK,
+							CHAT_CONTENT,
+							CHAT_TIME,
+							CHAT_READ,
+							CHAT_COUNT)
+		VALUES(
+			   SEQ_CNO.NEXTVAL,
+			   #{fromNick},
+			   #{toNick},
+			   #{chatContent},
+			   DEFAULT,
+			   DEFAULT,
+			   DEFAULT)
+	</insert>
+	
+	<!-- 채팅 목록 전체조회 쿼리문 -->
+	<select id="selectChatList" parameterType="string" resultType="chat">
+		SELECT * FROM CHAT 
+		WHERE ((FROM_NICK= #{fromNick} AND TO_NICK =#{toNick}) OR (FROM_NICK = #{toNick} AND TO_NICK = #{fromNick})) 
+		ORDER BY CHAT_TIME
+	</select>
+	
+	
+	<!-- 채팅함 목록 전체조회 쿼리문 -->
+	<select id="selectBoxList" parameterType="string" resultType="chat">
+	SELECT * FROM CHAT 
+	WHERE CHAT_ID IN (SELECT MAX(CHAT_ID) FROM CHAT WHERE TO_NICK = #{memberNick} OR FROM_NICK = #{memberId} GROUP BY FROM_NICK, TO_NICK)
+	ORDER BY CHAT_TIME DESC
+	</select>
+	
+	<!-- 읽은 메세지 업데이트 쿼리문 -->
+	<update id="readChat" parameterType="string">
+	
+	UPDATE CHAT SET CHAT_READ = 'Y' WHERE (FROM_NICK = #{toNick} AND TO_NICK = #{fromNick})
+		
+	</update>
+	
+	
+	<!-- 각 채팅방 안읽은 메세지 갯수  -->
+	<select id="unreadChat" parameterType="string" resultType="int">
+	
+	SELECT COUNT(CHAT_ID) FROM CHAT WHERE FROM_NICK = #{fromNick} AND TO_NICK = #{toNick} AND CHAT_READ = 'N'
+		
+	</select>
+	
+	<!-- 전체 안읽은 메세지 갯수 -->
+	<select id="allUnreadChat" parameterType="string" resultType="int">
+	
+	 SELECT COUNT(CHAT_ID) FROM CHAT WHERE TO_NICK = #{memberNick} AND CHAT_READ = 'N'
+		
+	</select>
+	
+	<!-- 채팅 삭제 쿼리문 -->
+	
+	<delete id="deleteChat" parameterType="string">
+		DELETE FROM CHAT
+		WHERE ((FROM_NICK= #{fromNick} AND TO_NICK =#{toNick}) OR (FROM_NICK = #{toNick} AND TO_NICK = #{fromNick})) 
+	</delete>
+	
+	
+	<!-- 판매자 프로필 -->
+	<select id="sellerprofile" parameterType="string" resultType="member">
+	SELECT M.MEMBER_NO,
+		M.MEMBER_NICK,
+		NVL(S.FILE_PATH,'resources/images/icon.png') AS FILE_PATH,
+        NVL(S.CAREER,'---') AS CAREER,
+        NVL(S.CONTENTS,'---') AS CONTENTS,
+		NVL(G.GRADE_NAME,'일반회원') AS GRADE_NAME,
+		NVL(C.CATEGORY_NAME,'---') AS CATEGORY_NAME
+		FROM MEMBER M 
+        FULL OUTER JOIN SELLER S ON M.MEMBER_NO = S.MEMBER_NO
+		FULL OUTER JOIN GRADE G ON S.GRADE_NO = G.GRADE_NO
+		FULL OUTER JOIN CATEGORY C ON S.CATEGORY_NO = C.CATEGORY_NO
+		WHERE M.MEMBER_NICK = #{toNick}
+		
+	</select>
+	
+	<!-- 판매자가 작성한 글  개수-->
+	<select id="selectboardCount" resultType="int" parameterType="string">
+   		SELECT COUNT(*) 
+		  FROM BOARD
+		 WHERE STATUS = 'Y'
+		   AND BOARD_WRITER = #{toNick}
+	</select>
+	
+	<!-- 판매자가 작성한 글 -->
+	
+	<select id="sellerboardlist" parameterType="map" resultType="board">
+
+	 SELECT *
+			    FROM (
+			  SELECT ROWNUM RNUM, A.*
+			    FROM (
+			 			SELECT BOARD_NO, BOARD_TITLE, BOARD_WRITER, FILE_PATH || CHANGE_NAME "TITLEIMG"
+			            FROM BOARD B
+			            JOIN ATTACHMENT USING (BOARD_NO)
+	                   WHERE FILE_LEVEL = 1
+			             AND B.STATUS = 'Y'
+			             AND B.BOARD_WRITER = #{toNick}
+			           ORDER BY ENROLL_DATE DESC) A)
+			WHERE RNUM BETWEEN #{startRow2} AND #{endRow2}
+	
+	
+	<!--  SELECT BOARD_NO, BOARD_TITLE, BOARD_WRITER, FILE_PATH || CHANGE_NAME "TITLEIMG" FROM BOARD
+     JOIN ATTACHMENT USING (BOARD_NO)  WHERE FILE_LEVEL = 1 AND BOARD_WRITER = #{toNick}  -->
+		
+	</select>
+	
+	<!-- 판매자별 리뷰 리스트 -->
+	
+	<select id="sellerrlist" parameterType="map" resultType="review">
+	
+	SELECT *
+			    FROM (
+			  SELECT ROWNUM RNUM, A.*
+			    FROM (
+						SELECT REVIEW_STAR, REVIEW_TITLE, REVIEW_CONTENT
+						FROM REVIEW
+						JOIN BOARD USING (BOARD_NO)
+						WHERE BOARD_WRITER = #{toNick}) A)
+			WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+			
+	</select>
+	
+	<!-- 판매자별 리뷰 개수 -->
+	
+	<select id="sellerrcount" parameterType="string" resultType="int">
+	SELECT COUNT(*) COUNT 
+	FROM REVIEW
+	JOIN BOARD USING (BOARD_NO)
+	WHERE BOARD_WRITER = #{toNick}
+	</select>
+	
+	
+	<!-- 판매자별 평균별점 조회 -->
+	<select id="selleravg" resultType="string" parameterType="string">
+		SELECT AVG(REVIEW_STAR) as AVG_STAR
+		FROM REVIEW
+		JOIN BOARD USING (BOARD_NO)
+		WHERE BOARD_WRITER = #{toNick}
+	</select>
+	
+	
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+

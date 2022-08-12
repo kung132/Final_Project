@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="category">
+
+	<select id="category" resultType="category" parameterType="string">
+		SELECT * FROM CATEGORY
+		WHERE
+		MAINCATEGORY_NAME = #{ categoryOption }
+	</select>
+	
+	<select id="findCategory" resultType="int" parameterType="map">
+		SELECT CATEGORY_NO
+		FROM CATEGORY
+		WHERE MAINCATEGORY_NAME = #{ optradio } 
+		AND
+		CATEGORY_NAME = #{ categoryName }
+	</select>
+
+	 
+</mapper>

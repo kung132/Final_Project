@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> <!-- xml 파일의 유효성 체크를 위한 부분 -->
+  
+<mapper namespace="reviewFile">
+	<insert id="enroll" parameterType="reviewFile">
+		INSERT INTO REVIEW_FILE(
+						  IMG_NO,
+						  REVIEW_NO,
+						  ORIGIN_NAME,
+						  CHANGE_NAME,
+						  FILE_PATH)
+		VALUES(
+			   SEQ_FNO.NEXTVAL,
+			   (SELECT MAX(REVIEW_NO)
+			    FROM REVIEW ),
+			   #{originName},
+			   #{changeName},
+			   #{filePath})
+	</insert>
+	
+	<!-- 파일 조회 -->
+	<select id="fileList" resultType="reviewFile" parameterType="map">
+		
+		SELECT *
+		FROM REVIEW_FILE
+		WHERE STATUS='Y'
+		AND
+		REVIEW_NO in  
+		<foreach collection="listNum" item="type"  open="(" close=")" separator=",">
+            #{type}
+        </foreach>
+
+	</select>
+</mapper>

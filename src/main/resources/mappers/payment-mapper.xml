@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> <!-- xml 파일의 유효성 체크를 위한 부분 -->
+<mapper namespace="payment">
+
+	<!-- 회원 정보 -->
+	
+	<select id="checkMember" resultType="member">
+		SELECT MEMBER_NO 
+  		  FROM MEMBER 
+ 		 WHERE EMAIL = #{memberEmail}
+   		   AND PHONE = #{memberPhone}
+	</select>
+
+	
+	<!-- 결제관련  -->
+	<select id="selectCard" resultType="payment">
+		SELECT CARD_NO, CARD_VALIDATE, CARD_PASSWORD, CVC, MEMBER_NO 
+		  FROM CARD 
+		 WHERE CARD_NO = #{cardNo}
+		   AND CARD_VALIDATE = #{cardValidate} 
+		   AND CARD_PASSWORD = #{cardPassword}
+		   AND CVC = #{cvc} 
+		   AND MEMBER_NO = #{memberNo} 
+	</select>
+	
+	<!-- 결제정보확인 -->
+	<select id="checkCard" resultType="int" parameterType="payment">
+		SELECT COUNT(*) 
+		 FROM CARD
+		 WHERE CARD_NO = #{cardNo} AND
+		 MEMBER_NO = #{memberNo} AND 
+		 CARD_VALIDATE = #{cardValidate} AND 
+		 CARD_PASSWORD = #{cardPassword} AND 
+		 CVC = #{cvc}
+	</select>
+	
+	<!-- 결제내역 insert -->
+	
+	<insert id="insertTrade" parameterType="trade">
+	
+	INSERT INTO TRADE_COM (TRADE_NO, MEMBER_NO, BOARD_NO, TRADE_DATE, STATUS) 
+		VALUES(SEQ_TRNO.NEXTVAL, #{memberNo},#{boardNo},SYSDATE,'Y')
+	
+	</insert>
+</mapper>

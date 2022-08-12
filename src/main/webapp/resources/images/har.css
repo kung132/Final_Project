@@ -1,0 +1,96 @@
+#bootstrap-overrides{
+    font-family: 'Noto Sans KR';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    background-color:#f6f6f6 ;
+}
+
+
+.panda{
+    background-color: #fff;
+    padding: 60px;
+
+}
+
+    
+
+
+ .payment_close_btn {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+}
+
+table{
+    font-family: 'Noto Sans KR';
+    font-style: normal;
+    font-weight: 300;
+    text-align: center;
+    font-size: larger;
+    
+}
+
+.info{
+    background-color: #f6f6f6;
+    width: 350px
+}
+
+.p2{
+    background-color: #f6f6f6;
+    width: 350px
+    
+}
+
+.p2_1{
+    font-family: 'Noto Sans KR'; 
+     size: 15px;  
+     margin-left: 10px; 
+     color: gray;
+
+}
+
+
+.paypal{  
+    border: 1px solid rgb(193, 136, 236);
+    font-family: 'Noto Sans KR';
+    font-style: normal;
+    font-weight: 100;
+    padding:15px
+
+  }
+
+
+#paypal.title{
+    margin-bottom:15px;
+    font-family: 'Noto Sans KR';
+    font-style: normal;
+    font-weight: 100;
+
+}
+
+
+.btn-submit{
+    background-color:#c188ec;
+    color: #fff;
+    margin-left: 40%;
+    width: 50%;
+    font-family:'Noto Sans KR';
+    font-weight :10px;
+    border-color:#c188ec;
+    border: 0;
+    outline: 0;
+   
+    
+}
+
+.pwd-1{
+    display: inline-block
+}
+
+.pwd{
+    display: inline-block
+}
+
+
+

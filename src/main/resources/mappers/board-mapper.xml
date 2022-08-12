@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> <!-- xml 파일의 유효성 체크를 위한 부분 -->
+<mapper namespace="board">
+	
+	<select id="selectListCount" resultType="int" parameterType="map">
+   		SELECT COUNT(*) 
+		  FROM BOARD
+          JOIN CATEGORY USING (CATEGORY_NO)
+		 WHERE STATUS = 'Y'
+		 <if test="mainCategory != null">
+           AND MAINCATEGORY_NAME = #{mainCategory}
+         </if> 
+		 <if test="categoryName != null">
+		   AND CATEGORY_NAME = #{categoryName}
+		 </if>
+	</select>
+	
+	<select id="selectThumbnailList" resultType="board" parameterType="map">
+          SELECT *
+			FROM (
+			    SELECT ROWNUM RNUM, A.*
+			    FROM (
+			            SELECT B.BOARD_NO, B.BOARD_TITLE, B.COST, G.GRADE_NAME, B.BOARD_WRITER, A.FILE_PATH || A.CHANGE_NAME "TITLEIMG"
+			            FROM BOARD B, CATEGORY C, ATTACHMENT A, SELLER S, GRADE G
+                        WHERE
+	                    B.CATEGORY_NO = C.CATEGORY_NO
+	                    AND B.BOARD_NO = A.BOARD_NO
+                        AND B.SELLER_NO = S.SELLER_NO
+                        AND S.GRADE_NO = G.GRADE_NO
+	                   AND FILE_LEVEL = 1
+			             AND B.STATUS = 'Y'
+			           <if test="mainCategory != null">
+			           	 AND MAINCATEGORY_NAME = #{mainCategory}
+			           </if>  
+			           <if test="categoryName != null">
+			           	 AND CATEGORY_NAME = #{categoryName}
+			           </if>
+			           <if test="type != null and keyword != null">
+			           	 AND ${type} LIKE '%' || #{keyword} || '%' 
+			           </if>
+			           ORDER BY ${col} ${order}) A)
+				WHERE RNUM BETWEEN ${startRow} AND ${endRow}
+	</select>
+	
+	
+	<insert id="enrollBoard" parameterType="board">
+		INSERT INTO BOARD (
+						   BOARD_NO, 
+						   SELLER_NO, 
+						   CATEGORY_NO, 
+						   BOARD_TITLE,
+						   LESSON_CONTENT, 
+						   CAREER, 
+						   BOARD_CONTENT,
+						   COUNT, 
+						   BOARD_WRITER, 
+						   ENROLL_DATE,
+						   STATUS, 
+						   COST, 
+						   ST_DATE, 
+						   FN_DATE)
+		VALUES(
+			   SEQ_BNO.NEXTVAL,
+			   #{sellerNo},
+			   #{categoryNo},
+			   #{boardTitle},
+			   #{lessonContent},
+			   #{career},
+			   #{boardContent},
+			   DEFAULT,
+			   #{boardWriter},
+			   DEFAULT,
+			   DEFAULT,
+			   #{cost},
+			   #{stDate},
+			   #{fnDate})
+	</insert>
+
+	
+	<insert id="insertAttachment" parameterType="Attachment">
+		INSERT INTO ATTACHMENT (
+								FILE_NO,
+								BOARD_NO,
+								ORIGIN_NAME,
+								CHANGE_NAME,
+								FILE_PATH,
+								FILE_SIZE,
+								FILE_TYPE,
+								UPLOAD_DATE,
+								FILE_LEVEL,
+								STATUS)
+	
+	   	VALUES(SEQ_ANO.NEXTVAL,
+	   		   SEQ_BNO.CURRVAL,
+	   		   #{originName},
+	   		   #{changeName},
+	   		   #{filePath},
+	   		   #{fileSize},
+	   		   #{fileType},
+	   		   DEFAULT,
+	   		   #{fileLevel},
+	   		   DEFAULT)
+
+	</insert>
+	<insert id="insertNewAttachment" parameterType="Attachment">
+		INSERT INTO ATTACHMENT (
+								FILE_NO,
+								BOARD_NO,
+								ORIGIN_NAME,
+								CHANGE_NAME,
+								FILE_PATH,
+								FILE_SIZE,
+								FILE_TYPE,
+								UPLOAD_DATE,
+								FILE_LEVEL,
+								STATUS)
+	
+	   	VALUES(SEQ_ANO.NEXTVAL,
+	   		   #{boardNo},
+	   		   #{originName},
+	   		   #{changeName},
+	   		   #{filePath},
+	   		   #{fileSize},
+	   		   #{fileType},
+	   		   DEFAULT,
+	   		   #{fileLevel},
+	   		   DEFAULT)
+
+	</insert>
+
+	<select id="selectCategory" resultType="category" parameterType="string">
+		SELECT *
+		  FROM CATEGORY
+		 WHERE MAINCATEGORY_NAME = #{mainCategory}
+	</select>
+	
+	<select id="getInfo" resultType="seller" parameterType="int">
+		SELECT *
+	      FROM SELLER
+		 WHERE MEMBER_NO = ${memberNo}
+	</select>
+	
+	<select id="selectBoardNo" resultType="int" parameterType="board">
+		SELECT BOARD_NO
+		  FROM BOARD
+		 WHERE SELLER_NO = #{sellerNo} AND
+			   CATEGORY_NO = #{categoryNo} AND 
+			   BOARD_TITLE = #{boardTitle} AND
+			   LESSON_CONTENT = #{lessonContent} AND 
+			   CAREER = #{career} AND
+			   BOARD_CONTENT = #{boardContent} AND
+			   BOARD_WRITER = #{boardWriter} AND
+			   COST = #{cost} AND
+			   ST_DATE = #{stDate} AND
+			   FN_DATE = #{fnDate}
+	</select>
+	
+	<select id="checkSeller" resultType="int" parameterType="int">
+		SELECT COUNT(*) 
+		  FROM SELLER
+		 WHERE MEMBER_NO = ${memberNo}
+		   AND ACCEPT_DATE IS NOT NULL
+	</select>
+	
+	<update id="increaseCount" parameterType="int">
+		UPDATE BOARD
+		   SET COUNT = COUNT + 1
+		 WHERE BOARD_NO = #{boardNo}
+	</update>
+	
+	<select id="selectDetailView" resultType="board" parameterType="int">
+		SELECT B.*, S.GRADE_NO
+		FROM BOARD B, SELLER S
+		WHERE S.SELLER_NO = B.SELLER_NO
+		AND BOARD_NO = ${ boardNo }
+	</select>
+	
+	<select id="detailAttachment" resultType="attachment" parameterType="int">
+		SELECT *
+		  FROM ATTACHMENT
+		 WHERE BOARD_NO = ${boardNo}
+	</select>
+	
+	<select id="selectedCategory" resultType="category" parameterType="int">
+		SELECT MAINCATEGORY_NAME, CATEGORY_NAME
+          FROM CATEGORY C, BOARD B
+         WHERE C.CATEGORY_NO = B.CATEGORY_NO
+           AND BOARD_NO = ${boardNo}
+	</select>
+	
+	<select id="getAllCategory" resultType="category">
+		SELECT *
+		  FROM CATEGORY
+	</select>
+	
+	<select id="checkCategory" resultType="int" parameterType="map">
+		SELECT CATEGORY_NO
+		  FROM CATEGORY
+		 WHERE MAINCATEGORY_NAME = #{mainCategory}
+		   AND CATEGORY_NAME = #{categoryName}
+	</select>
+	
+	<update id="saveUpdateBoard" parameterType="board">
+		UPDATE BOARD
+		   SET CATEGORY_NO = #{categoryNo}
+		     , BOARD_TITLE = #{boardTitle}
+		     , LESSON_CONTENT = #{lessonContent}
+		     , CAREER = #{career}
+		     , BOARD_CONTENT = #{boardContent}
+		     , COST = #{cost}
+		     , ST_DATE = #{stDate}
+		     , FN_DATE = #{fnDate}
+		 WHERE BOARD_NO = #{boardNo}
+	</update>
+	
+	<update id="saveUpdateAttachment" parameterType="Attachment">
+		UPDATE ATTACHMENT
+		   SET BOARD_NO = #{boardNo}
+		     ,ORIGIN_NAME = #{originName}
+		   	 ,CHANGE_NAME = #{changeName}
+		   	 ,FILE_PATH = #{filePath}
+		   	 ,FILE_SIZE =  #{fileSize}
+		   	 ,FILE_TYPE = #{fileType}
+		   	 ,UPLOAD_DATE = SYSDATE
+		   	 ,FILE_LEVEL = #{fileLevel}
+		   	 ,STATUS = #{status}
+		 WHERE FILE_NO = #{fileNo}
+	</update>
+
+	<update id="deleteBoard" parameterType="int">
+		UPDATE BOARD
+		   SET STATUS = 'N'
+		 WHERE BOARD_NO = ${ boardNo }
+	</update>
+	
+	<select id="getSellerNo" resultType="int" parameterType="int">
+      SELECT SELLER_NO
+          FROM SELLER
+         WHERE MEMBER_NO = ${memberNo}
+   </select>
+	
+	
+	<select id="sellerInfo" resultType="seller" parameterType="int">
+      SELECT *
+        FROM SELLER
+       WHERE SELLER_NO = ${ sellerNo }
+   </select>
+   
+   <select id="getMemberNO" resultType="int" parameterType="string">
+		SELECT MEMBER_NO
+		  FROM MEMBER
+		  WHERE MEMBER_NICK = #{boardWriter}
+	</select>
+	
+	<select id="selectBoardCount" resultType="int" parameterType="string">
+   		SELECT COUNT(*) 
+		  FROM BOARD
+		 WHERE STATUS = 'Y'
+		   AND BOARD_WRITER = #{boardWriter}
+	</select>
+	
+	<select id="selectThumbnailListByBoardNo" resultType="board" parameterType="map">
+		      SELECT *
+			    FROM (
+			  SELECT ROWNUM RNUM, A.*
+			    FROM (
+			 			SELECT BOARD_NO, BOARD_TITLE, COST, BOARD_WRITER, FILE_PATH || CHANGE_NAME "TITLEIMG"
+			            FROM BOARD B
+			            JOIN ATTACHMENT USING (BOARD_NO)
+	                   WHERE FILE_LEVEL = 1
+			             AND B.STATUS = 'Y'
+			             AND SELLER_NO = ${sellerNo}
+			           ORDER BY ENROLL_DATE DESC) A)
+			WHERE RNUM BETWEEN ${startRow} AND ${endRow}
+	</select>
+	
+	
+	
+	
+</mapper>

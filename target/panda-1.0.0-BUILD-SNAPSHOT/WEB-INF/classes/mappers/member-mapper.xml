@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> <!-- xml 파일의 유효성 체크를 위한 부분 -->
+<mapper namespace="member">
+
+<!-- 회원가입 -->
+<insert id="join" parameterType="member">
+		INSERT INTO MEMBER(
+						   MEMBER_NO, 
+						   MEMBER_ID,
+						   MEMBER_PWD,
+						   MEMBER_NAME,
+						   MEMBER_NICK,
+						   MEMBER_DATE,
+						   MEMBER_PHONE,
+						   MEMBER_EMAIL,
+						   ADDRESS,
+						   DETAIL_ADDRESS,
+						   STATUS
+						   )
+		VALUES(
+			   #{memberNo},
+			   #{memberId}, 
+			   #{memberPwd},
+			   #{memberName},
+			   #{memberNick},
+			   #{memberDate},
+			   #{memberPhone},
+			   #{memberEmail},
+			   #{address},
+			   #{deteilAddress},
+			   DEFAULT
+			   )
+	</insert>
+	
+	<!-- 로그인 -->
+	<select id="loginMember" resultType="member" parameterType="member">
+		SELECT *
+		FROM MEMBER
+		WHERE MEMBER_ID = #{memberId}
+		  AND MEMBER_PWD = #{memberPwd}
+	</select>
+
+</mapper>

@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> <!-- xml 파일의 유효성 체크를 위한 부분 -->
+<mapper namespace="member">
+
+<!-- 회원가입 -->
+<insert id="join" parameterType="member">
+		INSERT INTO MEMBER(
+						   MEMBER_NO, 
+						   MEMBER_ID,
+						   MEMBER_PWD,
+						   MEMBER_NAME,
+						   MEMBER_NICK,
+						   MEMBER_DATE,
+						   MEMBER_PHONE,
+						   MEMBER_EMAIL,
+						   ADDRESS,
+						   DETAIL_ADDRESS,
+						   STATUS
+						   )
+		VALUES(
+			   SEQ_MNO.NEXTVAL,
+			   #{memberId}, 
+			   #{memberPwd},
+			   #{memberName},
+			   #{memberNick},
+			   SYSDATE,
+			   #{memberPhone},
+			   #{memberEmail},
+			   #{address},
+			   #{detailAddress},
+			   DEFAULT
+			   )
+	</insert>
+	
+	<select id="idCheck" resultType="member" parameterType="string">
+		SELECT *
+		FROM MEMBER
+		WHERE MEMBER_ID = #{memberId}
+	</select>
+	
+	<!-- 로그인 -->
+	<select id="loginMember" resultType="member" parameterType="member">
+		SELECT *
+		FROM MEMBER
+		WHERE MEMBER_ID = #{memberId}
+		  AND MEMBER_PWD = #{memberPwd}
+		  AND STATUS = 'Y'
+	</select>
+	
+	<!-- 회원 정보 조회 -->
+	<select id="readMember" resultType="member">
+		SELECT *
+		FROM MEMBER
+		WHERE MEMBER_ID = #{memberId}
+	</select>
+	<!-- 아이디 찾기 -->
+	<select id="findId" parameterType="member" resultType="member">
+		SELECT *
+		FROM MEMBER 
+		WHERE MEMBER_EMAIL = #{memberEmail}
+	</select>
+	
+	<!-- 아이디 중복 검사 -->
+	<select id="check_id" parameterType="String" resultType="int">
+		SELECT COUNT(*) FROM MEMBER WHERE MEMBER_ID = #{memberId}
+	</select>
+	
+	<select id="findIdCheck" resultType="int">
+		SELECT COUNT(*) 
+		FROM MEMBER 
+		WHERE MEMBER_EMAIL = #{memberEmail}
+	</select>
+	
+	<!-- 비밀번호 변경 -->
+	<update id="updatePwd" parameterType="member">
+		UPDATE MEMBER SET MEMBER_PWD = #{memberPwd} WHERE MEMBER_ID = #{memberId}
+	</update>
+	
+	
+	<!-- 이메일 중복체크  -->
+   <select id="emailCheck" parameterType="member" resultType="int">
+      SELECT COUNT(*)
+      FROM MEMBER
+      WHERE MEMBER_EMAIL = #{memberEmail}
+   </select>
+   
+   <!-- 닉네임 중복 체크 -->
+   <select id="nickCheck" parameterType="member" resultType="int">
+      SELECT COUNT(*)
+      FROM MEMBER
+      WHERE MEMBER_NICK = #{memberNick}
+   </select>
+   
+   <!-- 휴대폰 번호 중복 체크 -->
+   <select id="phoneCheck" parameterType="member" resultType="int">
+      SELECT COUNT(*)
+      FROM MEMBER
+      WHERE MEMBER_PHONE = #{memberPhone}
+   </select>
+	
+	 <!-- 휴대폰 번호 중복 체크 -->
+   <select id="idCheck1" parameterType="member" resultType="int">
+      SELECT COUNT(*)
+      FROM MEMBER
+      WHERE MEMBER_ID = #{memberId}
+   </select>
+
+	<!-- 마이페이지 -->
+	
+	 <insert id="teacherAdd" parameterType="seller">
+	 	INSERT INTO SELLER(
+	 						SELLER_NO,
+	 						GRADE_NO,
+	 						MEMBER_NO,
+	 						CATEGORY_NO,
+	 						CONTENTS,
+	 						ENROLL_DATE,
+	 						ACCEPT_DATE,
+	 						FILE_PATH,
+	 						CAREER,
+	 						STATUS
+	 						)
+	 	VALUES(SEQ_SNO.NEXTVAL,
+	 		   1,
+	 		   #{ memberNo },
+	 		   #{ categoryNo },
+	 		   #{ contents },
+	 		   SYSDATE,
+	 		   NULL,
+	 		   #{ filePath },
+	 		   #{ career },
+	 		   'Y')
+	 </insert>
+	 
+	 <update id="changeNick" parameterType="member">
+	 	UPDATE MEMBER
+	 	SET MEMBER_NICK = #{ memberNick }
+	 	WHERE MEMBER_NO = #{ memberNo }
+	 </update>
+	 
+	 <update id="changeEmail" parameterType="member">
+	 	UPDATE MEMBER
+	 	SET MEMBER_EMAIL = #{ memberEmail }
+	 	WHERE MEMBER_NO = #{ memberNo }
+	 </update>
+	 
+	 <select id="sellerList" resultType="map" parameterType="int">
+	 	select member_no, member_nick, grade_name ,maincategory_name, category_name, contents, accept_date, file_path, career, accept_date
+		from (select member_no, grade_name, maincategory_name, category_name, contents, accept_date, file_path, career
+		        from seller
+		        join category using(category_no)
+		        join grade using(grade_no)) s
+		join member using (member_no)
+		where member_no = #{ memberNo }
+	 </select>
+	 
+	 <update id="fixProfile" parameterType="map">
+	 	UPDATE SELLER
+	 	SET
+	 	CONTENTS = #{ contents },
+	 	FILE_PATH = #{ upfilePath }
+	 	WHERE MEMBER_NO = #{ memberNo }
+	 </update>
+	 
+	 <update id="exit" parameterType="int">
+	 	UPDATE MEMBER
+	 	SET STATUS = 'N'
+	 	WHERE
+	 	MEMBER_NO = #{ memberNo }
+	 </update>
+	 
+	 <update id="changePhone" parameterType="member">
+		UPDATE MEMBER
+		SET MEMBER_PHONE = #{ memberPhone }
+		WHERE 
+		MEMBER_NO = #{ memberNo }
+	 </update>
+	 
+	 <update id="changePass" parameterType="map">
+	 	UPDATE MEMBER
+	 	SET MEMBER_PWD = #{ memberNewPwd }
+	 	WHERE
+	 	MEMBER_NO = #{ memberNo }
+	 </update>
+	 
+	 <select id="listCount" resultType="int" parameterType="int">
+	 	SELECT COUNT(*) FROM ZZIM
+	 	WHERE MEMBER_NO = #{ memberNo }
+	 	AND STATUS = 'Y'
+	 </select>
+	 
+	 <select id="listCount1" resultType="int" parameterType="int">
+	 	SELECT COUNT(*) FROM TRADE_COM
+	 	WHERE MEMBER_NO = #{ memberNo }
+	 	AND STATUS = 'Y'
+	 </select>
+	 
+
+	 <select id="selectZzim" resultType="zzim" parameterType="map">
+         SELECT * FROM (
+            SELECT ROWNUM RNUM, C.* FROM 
+                    (SELECT Z.ZZIM_NO, Z.BOARD_NO, B.BOARD_TITLE, M.MEMBER_NICK, B.ST_DATE, B.FN_DATE, B.COST, A.FILE_PATH || A.CHANGE_NAME "TITLEIMG"
+                        FROM ZZIM Z, BOARD B, SELLER S, MEMBER M, ATTACHMENT A
+                        WHERE 
+                        Z.BOARD_NO(+) = B.BOARD_NO AND
+                        B.SELLER_NO(+) = S.SELLER_NO AND
+                        S.MEMBER_NO(+) = M.MEMBER_NO AND
+                        B.BOARD_NO = A.BOARD_NO AND
+                        Z.MEMBER_NO = #{memberNo} AND
+                        A.FILE_LEVEL = 1 AND
+                        Z.STATUS = 'Y'
+                        ORDER BY Z.ZZIM_NO DESC
+                        ) C
+                )
+                WHERE RNUM BETWEEN ${startRow} AND ${endRow}
+     </select>
+	
+	 
+	 <select id="selectTradeList" resultType="trade" parameterType="map">
+	 	SELECT * FROM (
+    		SELECT ROWNUM RNUM, C.* FROM 
+            		(SELECT T.TRADE_NO, B.BOARD_NO, B.BOARD_TITLE, M.MEMBER_NICK, T.TRADE_DATE, B.FN_DATE, A.FILE_PATH || A.CHANGE_NAME "TITLEIMG"
+				        FROM BOARD B, MEMBER M, TRADE_COM T, ATTACHMENT A, SELLER S
+				        WHERE 
+				        T.BOARD_NO(+) = B.BOARD_NO AND
+				        B.BOARD_NO = A.BOARD_NO AND
+				        B.SELLER_NO(+) = S.SELLER_NO AND
+				        S.MEMBER_NO(+) = M.MEMBER_NO AND
+				        T.MEMBER_NO = #{ memberNo } AND
+				        A.FILE_LEVEL = 1 AND
+				        T.STATUS = 'Y'
+				        ORDER BY TRADE_DATE DESC
+			            ) C
+			    )
+			    WHERE RNUM BETWEEN ${startRow} AND ${endRow}
+	 </select>
+	 
+	<update id="deleteZzim" parameterType="int">
+         DELETE FROM ZZIM
+         WHERE ZZIM_NO = #{ zzimNo }
+     </update>
+	
+	
+	
+</mapper>

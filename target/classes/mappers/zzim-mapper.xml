@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> <!-- xml 파일의 유효성 체크를 위한 부분 -->
+<mapper namespace="zzim">
+
+<!-- 찜 체크 -->
+<select id="zzimCheck" resultType="int" parameterType="zzim">
+		SELECT COUNT(*) COUNT 
+		FROM ZZIM
+		WHERE BOARD_NO = #{boardNo} AND MEMBER_NO = #{memberNo} 
+		
+</select>
+
+<!-- 찜 넣기 -->
+<insert id="insertZzim" parameterType="zzim">
+	
+	INSERT INTO ZZIM(ZZIM_NO,MEMBER_NO,BOARD_NO,STATUS)
+	VALUES(SEQ_CNO.NEXTVAL,#{memberNo},#{boardNo},DEFAULT) 
+	
+</insert>
+
+<!--찜 삭제 -->
+<delete id="deleteZzim" parameterType="zzim">
+	
+DELETE FROM ZZIM
+WHERE MEMBER_NO = #{memberNo} AND BOARD_NO = #{boardNo}
+	
+</delete>
+
+
+<!-- 게시물당 찜 개수-->
+
+<select id="zzimCount" resultType="int" parameterType="int">
+SELECT COUNT(*) COUNT 
+FROM ZZIM
+WHERE BOARD_NO = #{boardNo}
+</select>
+
+
+</mapper>

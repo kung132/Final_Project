@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> <!-- xml 파일의 유효성 체크를 위한 부분 -->
+<mapper namespace="admin">
+
+	<select id="MemberCount" resultType="int">
+		SELECT COUNT(*)
+		FROM MEMBER
+		WHERE STATUS='Y'
+	</select>
+	<select id="SellerCount" resultType="int">
+		SELECT COUNT(*)
+		FROM SELLER
+		WHERE ACCEPT_DATE IS NOT NULL
+	</select>
+	<select id="TradeCount" resultType="int">
+		SELECT COUNT(*)
+		FROM TRADE_COM
+		WHERE STATUS = 'Y'
+	</select>
+	<select id="tradeToday" resultType="int">
+		SELECT COUNT(*)
+		FROM TRADE_COM
+		WHERE TO_CHAR(TRADE_DATE,'YYYYMMDD') = TO_CHAR(SYSDATE,'YYYYMMDD')
+	</select>
+	<select id="tradeWeek" resultType="int">
+		SELECT COUNT(*)
+		FROM TRADE_COM
+		WHERE TRADE_DATE BETWEEN TRUNC(SYSDATE,'IW') AND SYSDATE
+	</select>
+	<select id="tradeMonth" resultType="int">
+		SELECT COUNT(*)
+		FROM TRADE_COM
+		WHERE TO_CHAR(TRADE_DATE,'YYYYMM') = TO_CHAR(ADD_MONTHS(SYSDATE,-1),
+		'YYYYMM')
+	</select>
+	<select id="tradeLastWeek" resultType="int">
+		SELECT COUNT(*)
+		FROM
+		TRADE_COM
+		WHERE TRADE_DATE BETWEEN TRUNC(SYSDATE,'IW')-7 AND
+		TRUNC(SYSDATE,'IW')-7+6
+	</select>
+	<select id="SelectList" resultType="adminMember">
+		SELECT MEMBER_NO,
+		MEMBER_NICK, MEMBER_NAME, MEMBER_ID
+		FROM MEMBER
+		JOIN SELLER USING
+		(MEMBER_NO)
+		WHERE ACCEPT_DATE IS NULL
+		ORDER BY ENROLL_DATE ASC
+	</select>
+	<select id="CustomerList" resultType="adminMember">
+		SELECT M.MEMBER_NO,
+			M.MEMBER_ID,
+			M.MEMBER_PWD,
+			M.MEMBER_NAME,
+			M.MEMBER_NICK,
+			M.MEMBER_DATE,
+			M.MEMBER_EMAIL,
+			M.ADDRESS,
+			M.DETAIL_ADDRESS,
+			M.STATUS,
+			NVL(S.FILE_PATH,'없음') AS FILE_PATH,
+			NVL(G.GRADE_NAME,'일반회원') AS GRADE_NAME,
+		REGEXP_REPLACE(MEMBER_PHONE, '(.{3})(.+)(.{4})', '\1-\2-\3') MEMBER_PHONE
+		FROM MEMBER M FULL OUTER
+		JOIN SELLER S
+		ON M.MEMBER_NO = S.MEMBER_NO
+		FULL OUTER JOIN GRADE G
+		ON
+		S.GRADE_NO = G.GRADE_NO
+		WHERE M.STATUS='Y'
+		<if test="type != null and keyword != null">
+			AND ${type} LIKE '%' || #{keyword} || '%'
+		</if>
+		ORDER BY M.MEMBER_NO ASC
+	</select>
+	<select id="CustomerDetail" resultType="adminMember">
+		SELECT M.MEMBER_NO,
+		M.MEMBER_ID,
+		M.MEMBER_PWD,
+		M.MEMBER_NAME,
+		M.MEMBER_NICK,
+		M.MEMBER_DATE,
+		M.MEMBER_EMAIL,
+		M.ADDRESS,
+		M.DETAIL_ADDRESS,
+		M.STATUS,
+		REGEXP_REPLACE(MEMBER_PHONE, '(.{3})(.+)(.{4})', '\1-\2-\3') MEMBER_PHONE,
+		NVL(S.FILE_PATH,'없음') AS FILE_PATH,
+		NVL(G.GRADE_NAME,'일반회원') AS GRADE_NAME
+		FROM MEMBER M FULL OUTER JOIN SELLER S
+		ON M.MEMBER_NO =
+		S.MEMBER_NO
+		FULL OUTER JOIN GRADE G
+		ON S.GRADE_NO = G.GRADE_NO
+		WHERE
+		M.STATUS='Y'
+		AND M.MEMBER_NO = #{memberNo}
+		ORDER BY M.MEMBER_NO ASC
+	</select>
+
+	<update id="ApprovalUpdate" parameterType="int">
+		UPDATE SELLER
+		SET
+		ACCEPT_DATE = SYSDATE
+		WHERE MEMBER_NO = #{memberNo}
+	</update>
+
+	<update id="CustomerDelete" parameterType="int">
+		UPDATE MEMBER
+		SET
+		STATUS = 'N'
+		WHERE MEMBER_NO = #{memberNo}
+	</update>
+	<update id="GradeUpdate" parameterType="int">
+		UPDATE SELLER
+		SET GRADE_NO
+		= ${list.get(1)}
+		WHERE MEMBER_NO = ${list.get(0)}
+	</update>
+	<update id="SellerUpdate" parameterType="int">
+		UPDATE SELLER
+		SET STATUS
+		= 'N'
+		WHERE MEMBER_NO = #{memberNo}
+	</update>
+	<select id="SelectListCount" resultType="int">
+		SELECT COUNT(*)
+		FROM
+		MEMBER
+	</select>
+	<select id="pageList" resultType="adminMember" parameterType="map">
+			SELECT *
+      FROM (
+		          SELECT ROWNUM RNUM, A.*
+		          FROM (SELECT M.MEMBER_NO,
+		        M.MEMBER_ID,
+		        M.MEMBER_PWD, 
+		        M.MEMBER_NAME, 
+		    	M.MEMBER_NICK, 
+		    	M.MEMBER_DATE, 
+		    	M.MEMBER_EMAIL, 
+		    	M.ADDRESS, 
+		    	M.DETAIL_ADDRESS, 
+		    	M.STATUS,
+		        NVL(S.FILE_PATH,'없음') AS FILE_PATH,
+		        NVL(G.GRADE_NAME,'일반') AS GRADE_NAME,
+		        REGEXP_REPLACE(MEMBER_PHONE, '(.{3})(.+)(.{4})', '\1-\2-\3') MEMBER_PHONE
+		FROM MEMBER M FULL OUTER JOIN SELLER S 
+		ON M.MEMBER_NO = S.MEMBER_NO
+		FULL OUTER JOIN GRADE G
+		ON S.GRADE_NO = G.GRADE_NO
+		WHERE M.STATUS='Y'
+        AND ${type} LIKE '%' || #{keyword} || '%'
+		ORDER BY M.MEMBER_NO ASC )A)
+      	WHERE RNUM BETWEEN #{startRow} AND #{endRow}
+	</select>
+	<select id="SellerList" resultType="seller">
+		SELECT *
+		FROM SELLER
+		WHERE MEMBER_NO = ${memberNo}
+	</select>
+	<select id="MessageMemberList" resultType="adminMember">
+		SELECT M.MEMBER_NO,
+			M.MEMBER_ID,
+			M.MEMBER_PWD,
+			M.MEMBER_NAME,
+			M.MEMBER_NICK,
+			M.MEMBER_DATE,
+			M.MEMBER_EMAIL,
+			M.ADDRESS,
+			M.DETAIL_ADDRESS,
+			M.STATUS,
+			NVL(S.FILE_PATH,'없음') AS FILE_PATH,
+			NVL(G.GRADE_NAME,'일반회원') AS GRADE_NAME,
+		REGEXP_REPLACE(MEMBER_PHONE, '(.{3})(.+)(.{4})', '\1-\2-\3') MEMBER_PHONE
+		FROM MEMBER M FULL OUTER
+		JOIN SELLER S
+		ON M.MEMBER_NO = S.MEMBER_NO
+		FULL OUTER JOIN GRADE G
+		ON
+		S.GRADE_NO = G.GRADE_NO
+		WHERE M.STATUS='Y'
+			AND M.MEMBER_NO != 1
+		<if test="type != null and keyword != null">
+			AND ${type} LIKE '%' || #{keyword} || '%'
+		</if>
+		ORDER BY M.MEMBER_NO ASC
+	</select>
+	<update id="MessageSend" parameterType="map">
+		INSERT INTO CHAT(
+							CHAT_ID, 
+							FROM_NICK,
+							TO_NICK,
+							CHAT_CONTENT,
+							CHAT_TIME,
+							CHAT_READ,
+							CHAT_COUNT)
+		VALUES(
+			   SEQ_CNO.NEXTVAL,
+			   '관리자',
+			   #{memberNick},
+			   #{content},
+			   DEFAULT,
+			   DEFAULT,
+			   DEFAULT)
+	</update>
+	<delete id="RefusalDelete" parameterType="int">
+		DELETE SELLER
+		WHERE MEMBER_NO = #{memberNo}
+	</delete>
+	
+	<select id="newMember" resultType="int">
+		SELECT  
+		COUNT(*)  
+		FROM MEMBER
+		WHERE  
+		SUBSTR(MEMBER_DATE,0,8) BETWEEN (TO_CHAR(TRUNC(SYSDATE,'MM'),'YYYYMMDD') ) AND (LAST_DAY(SYSDATE))
+	</select>
+	
+	<select id="newBoard" resultType="int">
+		SELECT  
+		COUNT(*)  
+		FROM BOARD
+		WHERE  
+		SUBSTR(ENROLL_DATE,0,8) BETWEEN (TO_CHAR(TRUNC(SYSDATE,'MM'),'YYYYMMDD') ) AND (LAST_DAY(SYSDATE))
+	</select>
+	<select id="sellerRank" resultType="int">
+		SELECT SELLER_NO
+        FROM (SELECT SELLER_NO, COUNT(SELLER_NO)COUNT
+	        FROM BOARD
+	        GROUP BY SELLER_NO ORDER BY COUNT DESC)
+	        WHERE ROWNUM <![CDATA[ < ]]>6
+	</select>
+	<select id="sellerRankB" resultType="adminMember" parameterType="int">
+		SELECT M.*, S.FILE_PATH
+        FROM MEMBER M, SELLER S
+        WHERE M.MEMBER_NO = S.MEMBER_NO
+        AND S.SELLER_NO = ${ a }
+	</select>
+	<select id="boardRank" resultType="int">
+		SELECT BOARD_NO
+		FROM (SELECT BOARD_NO, COUNT(BOARD_NO)COUNT
+		FROM ZZIM
+		GROUP BY BOARD_NO ORDER BY COUNT DESC)
+		WHERE ROWNUM <![CDATA[ < ]]>6
+	</select>
+	<select id="boardRankB" resultType="board" parameterType="int">
+		SELECT *
+        FROM BOARD
+        WHERE BOARD_NO = ${ a }
+	</select>
+	<select id="categoryRank" resultType="int">
+		SELECT CATEGORY_NO
+        FROM (SELECT CATEGORY_NO, COUNT(CATEGORY_NO)COUNT
+        FROM BOARD
+        GROUP BY CATEGORY_NO ORDER BY COUNT DESC)
+        WHERE ROWNUM<![CDATA[ < ]]>6
+	</select>
+	<select id="categoryRankB" resultType="category" parameterType="int">
+		SELECT *
+        FROM CATEGORY
+        WHERE CATEGORY_NO = ${ a }
+	</select>
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+

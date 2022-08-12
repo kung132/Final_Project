@@ -1,0 +1,92 @@
+#bootstrap-overrides{
+    font-family: 'Noto Sans KR';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    background-color:#f6f6f6 ;
+}
+
+
+.panda{
+    background-color: #fff;
+    padding: 100px;
+}
+
+
+
+table{
+    font-family: 'Noto Sans KR';
+    font-style: normal;
+    font-weight: 300;
+    font-size: 20px;
+}
+
+.info{
+    background-color: #f6f6f6;
+    width: 350px
+}
+
+.p2{
+    background-color: #f6f6f6;
+    width: 350px;
+    
+}
+
+.p2_1{
+    font-family: 'Noto Sans KR';
+    font-size : 18px;
+    font-style: normal;
+    font-weight: 10px;
+    margin-left: 15px; 
+	
+}
+
+
+.paypal{  
+    border: 1px solid rgb(193, 136, 236);
+    font-family: 'Noto Sans KR';
+    font-style: normal;
+    font-weight: 100;
+    padding:15px;
+  }
+
+
+#paypal.title{
+    margin-bottom:15px;
+    font-family: 'Noto Sans KR';
+    font-style: normal;
+    font-weight: 100;
+
+}
+
+
+.btn-submit{
+    background-color:#c188ec;
+    color: #fff;
+    margin-left: 40%;
+    height:50px;
+    width: 150px;
+    font-family:'Noto Sans KR';
+    font-weight :10px;
+    border-color:#c188ec;
+    border: 0;
+    outline: 0;
+    font-size:18px;
+}
+
+.pwd-1{
+    display: inline-block
+}
+
+.pwd{
+    display: inline-block
+}
+
+label{
+	font-size:20px;
+	
+}
+.form-check-label{
+	font-size:15px;
+}
+
